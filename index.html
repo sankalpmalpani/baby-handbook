@@ -82,6 +82,8 @@ select.chipbtn{text-transform:none;padding-right:8px}
 .addbox input[name=p]{flex:1 1 180px}
 .addbox input[name=pr]{width:96px}
 .addbtn{background:var(--ink);color:var(--paper);border:0;border-radius:7px;padding:6px 14px;cursor:pointer;font-family:var(--mono);font-size:12px}
+.cancelbtn{background:none;color:var(--ink2);border:1px solid var(--line);border-radius:7px;padding:6px 14px;cursor:pointer;font-family:var(--mono);font-size:12px}
+.cancelbtn:hover{border-color:var(--ink3)}
 
 main{max-width:900px;margin:0 auto;padding:18px 16px 90px}
 .group{margin-top:26px}
@@ -199,6 +201,7 @@ footer code{font-family:var(--mono);font-size:11.5px}
       <select id="aStage" aria-label="Stage"></select>
       <select id="aStatus" aria-label="Status"></select>
       <button class="addbtn" id="aAdd">Add</button>
+      <button class="cancelbtn" id="aCancel">Cancel</button>
     </div>
   </div>
 </div>
@@ -713,11 +716,13 @@ const due=$("#dueDate"); due.value=state.due; due.onchange=()=>{state.due=due.va
 const aStage=$("#aStage"),aStatus=$("#aStatus");
 STAGES.forEach(x=>{const o=el("option",null,x.label);o.value=x.id;aStage.appendChild(o)});
 ORDER.forEach(v=>{const o=el("option",null,SLABEL[v]);o.value=v;aStatus.appendChild(o)});
-$("#addToggle").onclick=()=>{$("#addBox").classList.toggle("on");$("#aName").focus();};
+function closeAdd(){["aName","aPick","aPrice","aCat"].forEach(id=>$("#"+id).value="");$("#addBox").classList.remove("on");}
+$("#addToggle").onclick=()=>{const box=$("#addBox");if(box.classList.contains("on")){closeAdd();}else{box.classList.add("on");$("#aName").focus();}};
+$("#aCancel").onclick=closeAdd;
 $("#aAdd").onclick=()=>{const n=$("#aName").value.trim(); if(!n){toast("Give it a name first");return;}
   state.custom.push({id:"c"+Date.now(),n,p:$("#aPick").value.trim(),c:$("#aCat").value.trim()||"My additions",
     g:aStage.value||"before",s:aStatus.value||S.BUY,price:$("#aPrice").value.trim()||null,w:"",a:""});
-  save();["aName","aPick","aPrice"].forEach(id=>$("#"+id).value="");render();toast("Added");};
+  save();closeAdd();render();toast("Added");};
 
 const themeBtn=$("#themeBtn");
 const applyTheme=t=>{document.documentElement.dataset.theme=t;Store.set("bh_theme",t)};
