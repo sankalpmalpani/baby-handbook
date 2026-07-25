@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#EAECE7">
+<title>Baby Handbook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EAECE7; --card:#F5F6F3; --line:#D2D6CE;
+  --ink:#151A21; --ink2:#454E58; --ink3:#727B84;
+  --accent:#2B3A8F;
+  --s-bought:#2F6247; --s-buy:#2B3A8F; --s-task:#B5540E; --s-optional:#6A3E8F; --s-later:#87641A; --s-skip:#767E86;
+  --r:10px;
+  --sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --disp:'Bricolage Grotesque','IBM Plex Sans',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+}
+html[data-theme="dark"]{
+  --paper:#12161B; --card:#1A1F26; --line:#2B333C;
+  --ink:#E6EAE5; --ink2:#AAB3BC; --ink3:#7D8792;
+  --accent:#8FA0F5;
+  --s-bought:#6FBE96; --s-buy:#8FA0F5; --s-task:#E39457; --s-optional:#BE96E0; --s-later:#D6B558; --s-skip:#8A939C;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5;-webkit-text-size-adjust:100%;padding-bottom:env(safe-area-inset-bottom)}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--accent)}
+
+.top{position:sticky;top:0;z-index:50;background:var(--paper);border-bottom:1px solid var(--line);padding:10px 16px 0;padding-top:calc(10px + env(safe-area-inset-top))}
+.wrap{max-width:900px;margin:0 auto}
+.brandrow{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--disp);font-weight:800;font-size:22px;letter-spacing:-.02em;margin:0;line-height:1}
+.sub{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+.tools{margin-left:auto;display:flex;gap:6px}
+.iconbtn{background:none;border:1px solid var(--line);border-radius:8px;padding:5px 9px;cursor:pointer;font-size:12px;font-family:var(--mono);color:var(--ink2)}
+.iconbtn:hover{border-color:var(--ink3)}
+.syncdot{display:inline-block;width:8px;height:8px;border-radius:99px;background:var(--ink3);opacity:.4;align-self:center;margin-right:2px}
+.syncdot.on{background:var(--s-bought);opacity:1}
+
+.prog{margin:10px 0 8px}
+.progtop{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:11.5px;color:var(--ink2);letter-spacing:.02em;gap:10px}
+.bar{height:6px;background:var(--line);border-radius:99px;overflow:hidden;margin-top:5px;display:flex}
+.bar > i{display:block;height:100%}
+.bar > .pb{background:var(--s-bought)} .bar > .pt{background:var(--s-task)} .bar > .pq{background:var(--s-buy)}
+
+.rail{display:flex;gap:0;overflow-x:auto;margin:0 -16px;padding:2px 16px 0;scrollbar-width:none}
+.rail::-webkit-scrollbar{display:none}
+.stage{flex:0 0 auto;background:none;border:0;cursor:pointer;text-align:left;padding:6px 14px 10px 0;position:relative;color:var(--ink3)}
+.stage .lbl{font-family:var(--disp);font-weight:700;font-size:13px;letter-spacing:-.01em;white-space:nowrap;display:block}
+.stage .cnt{font-family:var(--mono);font-size:10.5px;letter-spacing:.04em}
+.stage::after{content:"";position:absolute;left:0;right:14px;bottom:0;height:2px;background:var(--line)}
+.stage[aria-pressed="true"]{color:var(--ink)}
+.stage[aria-pressed="true"]::after{background:var(--accent);height:3px}
+.stage.now .lbl::before{content:"";display:inline-block;width:6px;height:6px;border-radius:99px;background:var(--accent);margin-right:6px;vertical-align:middle}
+
+.filters{display:flex;gap:6px;flex-wrap:wrap;padding:10px 0 12px;align-items:center}
+.search{flex:1 1 190px;min-width:150px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:14px}
+.chipbtn{border:1px solid var(--line);background:var(--card);border-radius:99px;padding:5px 11px;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink2)}
+.chipbtn[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+select.chipbtn{text-transform:none;padding-right:8px}
+
+.nextup{max-width:900px;margin:16px auto 0;padding:0 16px}
+.nextcard{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:var(--r);padding:12px 14px}
+.nextcard .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3)}
+.nextcard .v{font-family:var(--disp);font-weight:700;font-size:17px;letter-spacing:-.01em;margin-top:2px}
+.nextcard .d{color:var(--ink2);font-size:13.5px;margin-top:3px}
+.datein{background:none;border:0;border-bottom:1px dashed var(--ink3);color:var(--ink2);font-family:var(--mono);font-size:12px;padding:0 2px}
+.spendrow{display:flex;gap:18px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.spendrow .cell .n{font-family:var(--disp);font-weight:700;font-size:18px}
+.spendrow .cell .l{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+
+.addbar{max-width:900px;margin:14px auto 0;padding:0 16px}
+.addbox{background:var(--card);border:1px dashed var(--line);border-radius:var(--r);padding:12px;margin-top:10px;display:none;gap:8px;flex-wrap:wrap}
+.addbox.on{display:flex}
+.addbox input,.addbox select{background:var(--paper);border:1px solid var(--line);border-radius:7px;padding:6px 9px;font-size:13.5px;color:var(--ink)}
+.addbox input[name=n]{flex:1 1 240px}
+.addbox input[name=p]{flex:1 1 180px}
+.addbox input[name=pr]{width:96px}
+.addbtn{background:var(--ink);color:var(--paper);border:0;border-radius:7px;padding:6px 14px;cursor:pointer;font-family:var(--mono);font-size:12px}
+
+main{max-width:900px;margin:0 auto;padding:18px 16px 90px}
+.group{margin-top:26px}
+.ghead{display:flex;align-items:baseline;gap:10px;border-bottom:1px solid var(--ink);padding-bottom:5px;margin-bottom:2px}
+.ghead h2{font-family:var(--disp);font-weight:700;font-size:16px;letter-spacing:-.01em;margin:0}
+.ghead .gc{font-family:var(--mono);font-size:11px;color:var(--ink3);margin-left:auto}
+ul.items{list-style:none;margin:0;padding:0}
+li.item{border-bottom:1px solid var(--line);padding:9px 0}
+.row{display:flex;gap:10px;align-items:flex-start}
+.tick{appearance:none;-webkit-appearance:none;flex:0 0 auto;margin:2px 0 0;width:18px;height:18px;border:1.5px solid var(--ink3);border-radius:5px;background:var(--card);cursor:pointer;position:relative}
+.tick:checked{background:var(--s-bought);border-color:var(--s-bought)}
+.tick.taskdone:checked{background:var(--s-task);border-color:var(--s-task)}
+.tick:checked::after{content:"";position:absolute;left:5.5px;top:2px;width:4px;height:9px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(42deg)}
+html[data-theme="dark"] .tick:checked::after{border-color:#101418}
+.tick:focus-visible,.namebtn:focus-visible,.chipbtn:focus-visible,.stage:focus-visible,.iconbtn:focus-visible,.st:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.main{flex:1 1 auto;min-width:0}
+.namebtn{background:none;border:0;padding:0;text-align:left;cursor:pointer;font-weight:600;font-size:15px;letter-spacing:-.005em;line-height:1.35;width:100%}
+.namebtn .pick{display:block;font-weight:400;font-size:13.5px;color:var(--ink2);margin-top:1px}
+.namebtn .prc{font-family:var(--mono);font-size:12px;color:var(--ink3);font-weight:400;margin-left:6px}
+.done .namebtn .n{color:var(--ink3)}
+.skipped .namebtn .n{color:var(--ink3);text-decoration:line-through}
+.meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center}
+.st{border:0;cursor:pointer;border-radius:5px;padding:2px 20px 2px 7px;font-family:var(--mono);font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:#fff;appearance:none;-webkit-appearance:none;
+  background-image:linear-gradient(45deg,transparent 50%,#fff 50%),linear-gradient(135deg,#fff 50%,transparent 50%);
+  background-position:calc(100% - 10px) 52%,calc(100% - 7px) 52%;background-size:3px 3px,3px 3px;background-repeat:no-repeat}
+.st.bought{background-color:var(--s-bought)} .st.buy{background-color:var(--s-buy)} .st.task{background-color:var(--s-task)}
+.st.optional{background-color:var(--s-optional)} .st.later{background-color:var(--s-later)} .st.skip{background-color:var(--s-skip)}
+.st option{background:var(--card);color:var(--ink)}
+.tag{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);border:1px solid var(--line);border-radius:5px;padding:2px 6px}
+.detail{margin:8px 0 4px 28px;font-size:14px;color:var(--ink2);max-width:64ch}
+.detail p{margin:0 0 7px}
+.detail .lab{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);display:block;margin-bottom:2px;margin-top:4px}
+.detail input.f,.detail textarea,.detail select.f{width:100%;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:13.5px;color:var(--ink)}
+.detail textarea{resize:vertical;min-height:48px}
+.frow{display:flex;gap:8px;flex-wrap:wrap}
+.frow > div{flex:1 1 150px}
+.frow > div.narrow{flex:0 0 120px}
+.rmbtn{background:none;border:1px solid var(--line);color:var(--ink3);border-radius:6px;padding:4px 10px;cursor:pointer;font-family:var(--mono);font-size:11px;margin-top:10px}
+.editbtn{background:none;border:0;color:var(--accent);cursor:pointer;font-family:var(--mono);font-size:11px;padding:0;margin-left:auto}
+.empty{color:var(--ink3);font-style:italic;padding:30px 0}
+
+footer{max-width:900px;margin:0 auto;padding:0 16px 50px;color:var(--ink3);font-size:12.5px}
+footer code{font-family:var(--mono);font-size:11.5px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:22px;background:var(--ink);color:var(--paper);padding:8px 14px;border-radius:99px;font-family:var(--mono);font-size:12px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:99}
+.toast.on{opacity:1}
+@media (max-width:520px){h1{font-size:19px} main{padding-top:12px}}
+@media print{.top,.tools,.filters,.rail,.toast,.addbar,.datein,.editbtn{display:none}body{background:#fff;font-size:11pt}li.item{break-inside:avoid}.detail{display:block !important}}
+@media (prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brandrow">
+      <h1>Baby Handbook</h1>
+      <span class="sub">India &middot; due 24 Aug 2026</span>
+      <div class="tools">
+        <span id="syncDot" class="syncdot" title="Offline (this device only)"></span>
+        <button class="iconbtn" id="themeBtn" title="Light / dark">&#9680;</button>
+        <button class="iconbtn" id="exportBtn" title="Save a backup file">Backup</button>
+        <button class="iconbtn" id="importBtn" title="Load a backup file">Restore</button>
+        <input type="file" id="importFile" accept="application/json" hidden>
+      </div>
+    </div>
+
+    <div class="prog">
+      <div class="progtop"><span id="progLabel">&mdash;</span><span id="progPct">0%</span></div>
+      <div class="bar"><i class="pb" id="pbBought"></i><i class="pt" id="pbTask"></i></div>
+    </div>
+
+    <nav class="rail" id="rail" aria-label="Stage"></nav>
+
+    <div class="filters">
+      <input class="search" id="q" type="search" placeholder="Search items, brands, notes&hellip;" aria-label="Search">
+      <button class="chipbtn" data-f="open" aria-pressed="false">Open only</button>
+      <button class="chipbtn" data-f="buy" aria-pressed="false">To buy</button>
+      <button class="chipbtn" data-f="task" aria-pressed="false">To&nbsp;do</button>
+      <button class="chipbtn" data-f="bought" aria-pressed="false">Bought</button>
+      <button class="chipbtn" data-f="optional" aria-pressed="false">Optional</button>
+      <button class="chipbtn" data-f="later" aria-pressed="false">Later</button>
+      <button class="chipbtn" data-f="skip" aria-pressed="false">Skipped</button>
+      <select class="chipbtn" id="catSel" aria-label="Category"><option value="">All categories</option></select>
+    </div>
+  </div>
+</header>
+
+<section class="nextup">
+  <div class="nextcard">
+    <span class="k">Right now</span>
+    <div class="v" id="nextTitle">&mdash;</div>
+    <div class="d" id="nextDesc"></div>
+    <div class="d" style="margin-top:6px">Due / birth date:
+      <input class="datein" type="date" id="dueDate" aria-label="Due or birth date">
+      <span id="dueNote"></span>
+    </div>
+    <div class="spendrow">
+      <div class="cell"><div class="n" id="spSpent">&#8377;0</div><div class="l">Spent (bought)</div></div>
+      <div class="cell"><div class="n" id="spLeft">&#8377;0</div><div class="l">Still to buy</div></div>
+      <div class="cell"><div class="n" id="spOpt">&#8377;0</div><div class="l">Optional</div></div>
+      <div class="cell"><div class="n" id="spAll">&#8377;0</div><div class="l">All priced items</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="addbar">
+  <div class="wrap" style="max-width:none;padding:0">
+    <button class="iconbtn" id="addToggle">+ Add your own item</button>
+    <div class="addbox" id="addBox">
+      <input name="n" id="aName" placeholder="Item or task" aria-label="Item">
+      <input name="p" id="aPick" placeholder="Brand / detail (optional)" aria-label="Detail">
+      <input name="pr" id="aPrice" type="number" inputmode="numeric" placeholder="&#8377; price" aria-label="Price">
+      <input name="c" id="aCat" list="catList" placeholder="Category" aria-label="Category">
+      <datalist id="catList"></datalist>
+      <select id="aStage" aria-label="Stage"></select>
+      <select id="aStatus" aria-label="Status"></select>
+      <button class="addbtn" id="aAdd">Add</button>
+    </div>
+  </div>
+</div>
+
+<main id="list"></main>
+
+<footer>
+  <p><strong>Editing.</strong> Tap an item to open it. Change its name, detail, price, category, when it's needed, and status right there. The coloured chip is a dropdown &mdash; change status without opening. Ticking the box marks a buy as bought or a task as done.</p>
+  <p><strong>Prices &amp; total.</strong> Type a number in an item's price box. The four totals at the top add up automatically &mdash; spent, still-to-buy, optional, and everything priced. Items with no price are just left out of the sums.</p>
+  <p><strong>Saving.</strong> Everything lives in this browser. Use <code>Backup</code> before switching phone or browser and <code>Restore</code> on the other device. To share one link that opens anywhere, drop this file on <code>app.netlify.com/drop</code> or a GitHub Pages repo, then "Add to Home Screen" on the phone.</p>
+  <p style="margin-top:14px">Not medical advice. Rashes, feeding trouble, fever and anything that worries you go to the paediatrician, not a checklist.</p>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ============================================================
+   LIVE SYNC — paste your two Supabase values here.
+   Leave them blank and the app works offline in this browser
+   exactly as before. Fill them in and it syncs across devices.
+   ============================================================ */
+const SB_URL = "";          // e.g. https://abcdxyz.supabase.co
+const SB_KEY = "";          // the "anon public" key
+const SYNC_ON = SB_URL && SB_KEY;
+/* ============================================================ */
+
+const Store=(()=>{let mem={},ok=true;try{localStorage.setItem("__t","1");localStorage.removeItem("__t")}catch(e){ok=false}
+return{get(k){try{return ok?localStorage.getItem(k):(k in mem?mem[k]:null)}catch(e){return k in mem?mem[k]:null}},
+set(k,v){try{ok?localStorage.setItem(k,v):(mem[k]=v)}catch(e){mem[k]=v}}}})();
+
+const STAGES=[
+ {id:"before",label:"Before delivery",note:"Everything that should already be in the house."},
+ {id:"hospital",label:"Hospital bag",note:"Packed and by the door by early August."},
+ {id:"w0",label:"Week 0-2",note:"Feeding, nappies, recovery, admin. No shopping."},
+ {id:"w6",label:"Week 6-8",note:"Carrier decision. Walks start. The drive."},
+ {id:"m2",label:"Month 2-3",note:"Stroller. Pump if expressing is routine."},
+ {id:"m6",label:"Month 5-6",note:"Solids kit."},
+ {id:"any",label:"As needed",note:"Buy the day you actually need it."}
+];
+
+const S={BOUGHT:"bought",BUY:"buy",TASK:"task",OPTIONAL:"optional",LATER:"later",SKIP:"skip"};
+const SLABEL={bought:"Bought",buy:"To buy",task:"To do",optional:"Optional",later:"Later",skip:"Skipped"};
+const ORDER=[S.BUY,S.TASK,S.OPTIONAL,S.LATER,S.BOUGHT,S.SKIP];
+const SETTLED=[S.BOUGHT,S.SKIP];
+const PRICED=[S.BOUGHT,S.BUY,S.OPTIONAL,S.LATER];
+
+const ITEMS=[
+/* ===================== FEEDING ===================== */
+{c:"Feeding",g:"before",s:S.BOUGHT,n:"Pigeon SoftLatch glass feeding bottle",p:"Yellow · glass, wide neck",
+ w:"Your glass bottle for the newborn months. SoftLatch is Pigeon's newer teat, designed to hold its shape and let the baby latch wide rather than collapse under suction. Glass doesn't stain or hold smells and takes repeated sterilising without complaint.",a:""},
+{c:"Feeding",g:"before",s:S.BOUGHT,n:"Philips Avent Natural Response bottle",p:"SCY903/01 · 260 ml plastic · ₹580",
+ w:"Bought mainly for the complete Philips top — Natural Response teat, screw ring, sealing disc, cap. The teat only releases milk when the baby actively sucks, which suits a breastfed baby.",
+ a:"CHECK THE TEAT: SCY903/01 is sold as the 6 months+ bottle and ships with a fast-flow teat. A newborn needs the newborn or flow-2 teat. Either swap the order for SCY900/01 (125 ml, 0m+) or SCY902/01 (260 ml, 1m+), or keep this bottle and buy a pack of Natural Response newborn teats separately — the bottle body is identical, only the teat differs."},
+{c:"Feeding",g:"before",s:S.BUY,n:"Philips Avent Natural Response newborn teats",p:"Flow 1 / newborn · pack of 2 · order this week",
+ w:"Only needed if you keep the 6m+ bottle above. A fast-flow teat on a newborn floods them and makes going back to the breast harder.",a:""},
+{c:"Feeding",g:"before",s:S.BOUGHT,n:"Pigeon Liquid Cleanser Naturals",p:"700 ml · ₹486",
+ w:"Also does teats, pump parts, pacifiers, teethers and later fruit and vegetables. One bottle is plenty to start.",a:""},
+{c:"Feeding",g:"before",s:S.BOUGHT,n:"Pigeon Bottle & Nipple Brush (rotary)",p:"₹299",
+ w:"Rotating handle gets the base of the bottle without you twisting your wrist. Replace it every 2–3 months, or sooner once the bristles splay.",a:""},
+{c:"Feeding",g:"before",s:S.TASK,n:"Sterilise and leak-test both bottles before first use",p:"Do it by 17 Aug",
+ w:"Boil for five minutes, assemble, fill with water, turn upside down. Better to find a bad seal now than at 2 a.m. with a hungry baby.",a:""},
+{c:"Feeding",g:"any",s:S.LATER,n:"Steam steriliser with dryer",p:"Budget ₹5,000–8,000 · revisit near delivery",
+ w:"The drying is what saves you time, not the sterilising. With two bottles, boiling in a pot is genuinely fine. Worth buying once expressing becomes routine or she goes back to work.",
+ a:"Must have: hot-air dry, auto shut-off, storage mode, fits pump parts. Shortlist: Babyhug, LuvLap, Momcozy. Philips Avent only if heavily discounted. Skip UV and steriliser-only models."},
+{c:"Feeding",g:"any",s:S.LATER,n:"More bottles and spare teats",p:"Only once the baby picks a side",
+ w:"Teat preference can't be predicted. Buy more of whichever of the two works.",a:""},
+{c:"Feeding",g:"any",s:S.SKIP,n:"Bottle warmer · drying rack · washing basin",p:"",
+ w:"A mug of warm water, the steriliser's dryer, and the kitchen sink.",a:""},
+
+/* ===================== NURSING & PUMPING ===================== */
+{c:"Nursing & pumping",g:"before",s:S.BOUGHT,n:"Wakefit 5-in-1 feeding pillow",p:"Belt + hoop · velvet removable cover · hollow fibre · Peacock Green · ₹1,098 · 6-month warranty",
+ w:"This replaced the Kradyl Kroft in the cart — same idea (belt to stop it sliding, hoop to hold the baby's position, cover comes off to wash), with a warranty and a friend's real-world use behind it.",
+ a:"Rejected: My Brest Friend (best design, India import price kills it), Wakefit foam version (firmer but no hoop), Kradyl Kroft (very close call)."},
+{c:"Nursing & pumping",g:"before",s:S.BOUGHT,n:"Lansinoh HPA Lanolin nipple cream",p:"10 ml",
+ w:"The one most lactation consultants name. Doesn't need wiping off before a feed when used as directed, and you use very little.",a:""},
+{c:"Nursing & pumping",g:"before",s:S.BOUGHT,n:"Mee Mee disposable nursing pads",p:"24 pcs",
+ w:"Small pack on purpose — how much you leak varies enormously. Decide on washable pads later if you're getting through a lot.",a:""},
+{c:"Nursing & pumping",g:"before",s:S.BOUGHT,n:"Haakaa silicone milk collector",p:"90 ml clear · ₹1,129",
+ w:"Suctions to the other side during a feed and catches let-down that would otherwise soak a pad. It's a collector, not a pump.",
+ a:"Sits on a flat surface once it's full — if it tips, that's a feed's worth of milk on the floor. Some parents buy the suction-base version for this reason."},
+{c:"Nursing & pumping",g:"before",s:S.BUY,n:"Nursing bras",p:"2–3 · front-open · buy a size up",
+ w:"Not on any of your lists yet. Size changes when the milk comes in, so buy soft, unwired and roomier than you think.",a:""},
+{c:"Nursing & pumping",g:"before",s:S.OPTIONAL,n:"Lumbar cushion for the feeding chair",p:"₹400–800",
+ w:"The feeding pillow supports the baby; nothing supports her lower back. On 8–12 feeds a day this matters more than any upgrade to the pillow.",a:""},
+{c:"Nursing & pumping",g:"before",s:S.TASK,n:"Lactation consultant's number, before you need it",p:"Ask the hospital for a name now",
+ w:"The first 72 hours is when latch problems appear and when nobody has the energy to start searching. Having a number saves days.",a:""},
+{c:"Nursing & pumping",g:"any",s:S.SKIP,n:"Manual breast pump",p:"Decided against",
+ w:"Manual pumps suit people who might pump occasionally. Your plan is regular expressing then daily pumping after she's back at work, so the money goes into one good electric pump instead of buying twice.",a:""},
+{c:"Nursing & pumping",g:"m2",s:S.LATER,n:"Electric breast pump",p:"Double electric · decide 2–4 weeks postpartum, or a month before she returns to work",
+ w:"Waiting gets you flange size, real pumping frequency, and current models and prices.",
+ a:"To compare then: Spectra S1/S2, Medela, Momcozy, ProMom, Philips Avent electric. A wearable is convenient but a poor only-pump while supply is being established."},
+{c:"Nursing & pumping",g:"m2",s:S.LATER,n:"Milk storage bags",p:"Buy with the pump",w:"No use until there's milk to store.",a:""},
+
+/* ===================== DIAPERING ===================== */
+{c:"Diapering",g:"before",s:S.BOUGHT,n:"Pampers Premium Baby Care diapers",p:"2–5 kg · 50 pcs · ₹1,999",
+ w:"Your softest option for the first weeks. Note this is the 2–5 kg newborn size — good, the pant XS is no longer the plan.",a:""},
+{c:"Diapering",g:"before",s:S.BOUGHT,n:"Huggies Natural Soft Premium tape diapers",p:"NB/XS, up to 5 kg · 32 ct · ₹345",
+ w:"Deliberately a second brand. Fit varies with the baby's build and one will leak less. Run one for two or three days, then the other, then stock up on the winner. Huggies' runny-poo pocket earns its keep in the first fortnight.",a:""},
+{c:"Diapering",g:"before",s:S.BOUGHT,n:"NYRA disposable dry wipes",p:"200 ct · 8\" × 8\" · ₹219",
+ w:"Wet these with warm water at home and keep the wet wipes for outings. Kinder on newborn skin and about ₹1 a change.",a:""},
+{c:"Diapering",g:"before",s:S.BOUGHT,n:"Mother Sparsh 99% pure water wipes",p:"72 pcs × 6 packs",
+ w:"For outings and messy changes. Six packs is a good stock — they don't expire quickly.",a:""},
+{c:"Diapering",g:"before",s:S.BOUGHT,n:"Sebamed baby rash cream",p:"pH 5.5 · 100 ml",
+ w:"Use when the skin starts looking red, not at every change. Frequent changes and a few seconds of air-drying prevent more rashes than any cream. If a rash lasts more than a couple of days, spreads or blisters, get it looked at.",a:""},
+{c:"Diapering",g:"before",s:S.BOUGHT,n:"Cloth nappies / langots",p:"",w:"Daytime at home; disposables for nights and going out.",a:""},
+{c:"Diapering",g:"before",s:S.BOUGHT,n:"Changing mat",p:"",w:"",a:""},
+{c:"Diapering",g:"before",s:S.BOUGHT,n:"Diaper caddy",p:"",w:"Keep it stocked beside the bed for night changes.",a:""},
+{c:"Diapering",g:"before",s:S.BOUGHT,n:"Disposable diaper bags",p:"",w:"Mostly for travel and other people's houses.",a:""},
+{c:"Diapering",g:"before",s:S.BUY,n:"Lidded bin and liners at the changing spot",p:"Small, with a foot pedal if possible",
+ w:"Missing from every list so far. A covered bin emptied daily beats any branded diaper pail, but you need it in the right room before day one.",a:""},
+{c:"Diapering",g:"any",s:S.LATER,n:"Size S diapers",p:"After birth weight is known",
+ w:"NB fits to about 5 kg, S starts around 4 kg — they overlap. Buy once you know the weight and which brand fits.",a:""},
+{c:"Diapering",g:"any",s:S.SKIP,n:"Wipe warmer · changing table · diaper pail",p:"",
+ w:"The mat on a bed or dresser replaces the table; a lidded bin replaces the pail.",a:""},
+
+/* ===================== BATHING & SKIN ===================== */
+{c:"Bathing & skin",g:"before",s:S.BOUGHT,n:"Safe-O-Kid folding baby bather",p:"Anti-slip silicone mesh · 0–6 months · Light Green · ₹949",
+ w:"A seat, not a tub: folds flat, dries fast, holds the head and back so you can wash with both hands. Most parents stop using any support around 5–6 months, so this is the right amount to spend.",
+ a:"Angelcare is the best-designed support anywhere, but ₹4,000–7,000 imported for a few months' use didn't stand up."},
+{c:"Bathing & skin",g:"before",s:S.BOUGHT,n:"Sebamed baby gentle wash",p:"pH 5.5 · soap-free · tear-free · 400 ml",
+ w:"One gentle head-to-toe wash is all a newborn needs. Sebamed's pH 5.5 line is a common paediatrician recommendation for delicate skin.",a:""},
+{c:"Bathing & skin",g:"before",s:S.BOUGHT,n:"Sebamed baby shampoo",p:"pH 5.5 · 150 ml",w:"",a:""},
+{c:"Bathing & skin",g:"before",s:S.BOUGHT,n:"Sebamed baby body lotion",p:"pH 5.5 · 100 ml",
+ w:"Only when the skin looks dry — not a daily requirement.",a:""},
+{c:"Bathing & skin",g:"before",s:S.BOUGHT,n:"Mother Sparsh cold-pressed virgin coconut oil",p:"200 ml",
+ w:"For massage. Warm it in your hands, not on the stove, and keep it off the face and the cord stump until that's healed.",a:""},
+{c:"Bathing & skin",g:"before",s:S.BOUGHT,n:"Hooded towels and washcloths",p:"2 towels, 6–8 washcloths",w:"",a:""},
+{c:"Bathing & skin",g:"any",s:S.SKIP,n:"Bathtub · bath stand · bath thermometer · powder",p:"",
+ w:"Your elbow reads water temperature perfectly well — comfortably warm, not hot. Powder goes airborne while you apply it.",a:""},
+
+/* ===================== SLEEP & NURSERY ===================== */
+{c:"Sleep & nursery",g:"before",s:S.BOUGHT,n:"Cot, mattress and mattress protector",p:"",w:"Firm and flat, fitted sheet, nothing loose in it.",a:""},
+{c:"Sleep & nursery",g:"before",s:S.BOUGHT,n:"Waterproof sheet · bedsheets · blanket",p:"",w:"",a:""},
+{c:"Sleep & nursery",g:"before",s:S.BOUGHT,n:"LifeKrafts foldable baby mosquito net",p:"Bottomless · 0–36 months · 135 × 65 × 65 cm · Ocean Green · ₹847",
+ w:"Bottomless is the right choice — it sits over the sleeping surface instead of adding a base the baby lies on. Non-negotiable for a Jaipur monsoon.",a:""},
+{c:"Sleep & nursery",g:"before",s:S.BOUGHT,n:"One94Store sleeping cat night lamp",p:"Rechargeable silicone · ₹399 · arrives 28–31 Jul",
+ w:"The one you carry to the feeding chair and the changing mat. Warm light, touch dimming, soft body if it gets knocked off the bed.",a:""},
+{c:"Sleep & nursery",g:"before",s:S.BUY,n:"Plug-in warm white night light",p:"Philips SereneShine 0.5 W or similar",
+ w:"Stays plugged in all night so the room is never fully dark and you never hunt for anything. Pairs with the portable lamp rather than replacing it.",a:""},
+{c:"Sleep & nursery",g:"m2",s:S.LATER,n:"Sleep sack",p:"Around 2–3 months, when swaddling stops",w:"",a:""},
+{c:"Sleep & nursery",g:"any",s:S.SKIP,n:"Baby pillow · nest · sleep positioner · wedge · monitor",p:"",
+ w:"Nothing soft or loose in a newborn's sleep space. Monitor only becomes relevant if the baby sleeps in a different room.",a:""},
+
+/* ===================== CLOTHING & LAUNDRY ===================== */
+{c:"Clothing & laundry",g:"before",s:S.BOUGHT,n:"Newborn clothes",p:"Jablas, bodysuits, sleepsuits, vests, mittens, socks, caps, bibs",
+ w:"Front-open jablas and double-zip sleepsuits beat buttons at 2 a.m. Buy by weight, not by the age on the label.",a:""},
+{c:"Clothing & laundry",g:"before",s:S.BOUGHT,n:"Mother Sparsh baby laundry liquid detergent",p:"Plant-based with bio-enzymes and eucalyptus · 500 ml × 2",w:"",a:""},
+{c:"Clothing & laundry",g:"before",s:S.TASK,n:"Wash and fully dry everything before first use",p:"Clothes, muslins, bedding, towels — do it by 3 Aug, monsoon drying is slow",
+ w:"Do it now, not in the last week. Monsoon in Jaipur means things take a day or two to dry properly, and damp cotton against newborn skin is how rashes start.",a:""},
+{c:"Clothing & laundry",g:"before",s:S.TASK,n:"Muslin cloths and burp cloths",p:"Aim for 6–10 muslins, 4–8 burp cloths — confirm you have enough",
+ w:"The most-used object in the house. Burp cloth, sun shade, feeding cover, mop, pillow protector.",a:""},
+{c:"Clothing & laundry",g:"before",s:S.TASK,n:"Separate laundry basket and indoor drying space",p:"",
+ w:"Baby laundry runs daily and separately. In monsoon you need a rack somewhere with airflow, or a fan pointed at it.",a:""},
+{c:"Clothing & laundry",g:"any",s:S.LATER,n:"0–3 month clothes",p:"After birth, and after the gifts arrive",w:"",a:""},
+
+/* ===================== HEALTH ===================== */
+{c:"Health",g:"before",s:S.BOUGHT,n:"Mother Sparsh tummy roll-on",p:"Hing and saunf · 40 ml",
+ w:"For colic and wind. Roll on the tummy, not the chest or face. Ask the paediatrician before using anything on a newborn under a month.",a:""},
+{c:"Health",g:"before",s:S.BOUGHT,n:"Digital thermometer",p:"Your existing one is fine",
+ w:"A normal adult digital thermometer works — take the reading in the armpit. Check the battery now.",a:""},
+{c:"Health",g:"before",s:S.BOUGHT,n:"Nail cutter and file · saline drops",p:"",
+ w:"Nails: easiest while the baby is asleep. Saline: for a blocked nose, not daily.",a:""},
+{c:"Health",g:"before",s:S.BUY,n:"Choose a paediatrician in Jaipur — and one near her mother's place",p:"Both, before delivery",
+ w:"You'll change cities at around six weeks. Having the second name already, with a first appointment understood, avoids a scramble when something comes up.",a:""},
+{c:"Health",g:"before",s:S.TASK,n:"Numbers on the fridge, on paper",p:"",
+ w:"Hospital, paediatrician, her doctor, a neighbour, the 24-hour pharmacy, a cab number. Paper, because the phone is never where you need it.",a:""},
+{c:"Health",g:"before",s:S.TASK,n:"A folder for the baby's papers",p:"One plastic sleeve is enough",
+ w:"Discharge summary, vaccination card, every prescription and report from here on. You will be asked for the vaccination card at every single visit.",a:""},
+{c:"Health",g:"any",s:S.LATER,n:"Nasal aspirator",p:"Order the day it's needed",w:"Arrives same-day when a cold turns up. Most families don't need one in the first weeks.",a:""},
+{c:"Health",g:"any",s:S.SKIP,n:"Medicine dispenser / syringe",p:"",w:"Infant medicines come with their own.",a:""},
+
+/* ===================== MOTHER'S RECOVERY ===================== */
+{c:"Mother's recovery",g:"before",s:S.BOUGHT,n:"Nua maternity comfort pads",p:"XXXL 400 mm · pack of 8",
+ w:"Buy more than this before you need them — the first fortnight gets through a lot.",a:""},
+{c:"Mother's recovery",g:"before",s:S.BOUGHT,n:"Nua 360° maternity panties",p:"XXL–XXXL · pack of 5",w:"",a:""},
+{c:"Mother's recovery",g:"before",s:S.BOUGHT,n:"INNERSY high-waisted postpartum underwear",p:"Cotton · size L · multipack",
+ w:"High-waisted matters after abdominal surgery — nothing should sit on the incision line.",a:""},
+{c:"Mother's recovery",g:"before",s:S.BOUGHT,n:"The Mom Store maternity panties",p:"Cotton gusset · size L · pack of 2",w:"",a:""},
+{c:"Mother's recovery",g:"before",s:S.BUY,n:"More maternity pads",p:"A second pack at least",
+ w:"The one thing nobody has ever regretted over-buying.",a:""},
+{c:"Mother's recovery",g:"before",s:S.BUY,n:"Peri bottle",p:"",w:"Small spend, disproportionately appreciated in week one.",a:""},
+{c:"Mother's recovery",g:"before",s:S.BUY,n:"Water bottle she can open one-handed",p:"Straw or sports cap · one by the bed, one by the feeding chair",
+ w:"Feeding makes you thirsty at exactly the moment both hands are occupied.",a:""},
+{c:"Mother's recovery",g:"before",s:S.OPTIONAL,n:"A firm pillow to hold against the abdomen",p:"",
+ w:"For coughing, laughing, sneezing and getting out of bed after surgery. Costs nothing and is mentioned by nearly everyone who's been through it.",a:""},
+{c:"Mother's recovery",g:"before",s:S.BUY,n:"Slip-on footwear with grip",p:"No bending down to fasten anything",w:"",a:""},
+{c:"Mother's recovery",g:"before",s:S.OPTIONAL,n:"Abdominal binder — only if her doctor says so",p:"Don't buy on internet advice",
+ w:"Some surgeons recommend one, some don't. Ask at the last appointment rather than turning up with one.",a:""},
+{c:"Mother's recovery",g:"w0",s:S.TASK,n:"Write down the help rota for the first fortnight",p:"On paper, agreed in advance",
+ w:"Who does night nappies, who cooks, who handles visitors and how visitors get politely limited. Mobility is limited early on and assumptions turn into resentment fast.",a:""},
+{c:"Mother's recovery",g:"w0",s:S.TASK,n:"Get the warning-signs list and follow-up date before discharge",p:"In writing, from the treating doctor",
+ w:"Ask specifically what counts as 'call us now'. Put it on the fridge with the phone numbers.",a:""},
+
+/* ===================== DOCUMENTS & ADMIN ===================== */
+{c:"Documents & admin",g:"before",s:S.TASK,n:"Start the insurance pre-authorisation",p:"Start it by 17 Aug — 3–7 days before a planned admission",
+ w:"Cashless approval for a planned admission is paperwork the hospital's TPA desk handles, but it has to be started in advance. Also confirm the room-rent cap and what the policy excludes — that's where the surprise bills come from.",a:""},
+{c:"Documents & admin",g:"before",s:S.TASK,n:"Hospital pre-registration completed",p:"",
+ w:"Most hospitals let you register ahead so admission is a signature rather than a form-filling session.",a:""},
+{c:"Documents & admin",g:"hospital",s:S.BUY,n:"The document folder",p:"One clear plastic folder, everything in it",
+ w:"IDs for both of you, insurance card and policy number, pre-auth reference, hospital registration papers, latest prescriptions, all pregnancy reports and scans, blood group reports, list of any regular medicines. Photograph the lot into Drive as a backup.",a:""},
+{c:"Documents & admin",g:"hospital",s:S.TASK,n:"Photocopies and passport photos",p:"3–4 sets of both IDs · 6 passport photos",
+ w:"Hospitals and the birth registration office both ask, always at the least convenient moment.",a:""},
+{c:"Documents & admin",g:"hospital",s:S.TASK,n:"Cash in the bag",p:"Alongside cards — don't rely on UPI",
+ w:"Hospital canteens, parking, chemists at 3 a.m. and auto drivers all still like cash.",a:""},
+{c:"Documents & admin",g:"w0",s:S.TASK,n:"Register the birth",p:"Within 21 days of birth",
+ w:"The hospital gives you the birth-reporting form. Register within 21 days and getting the certificate stays simple; after that it turns into an affidavit process. Check the spelling of every name on the form before you sign it.",a:""},
+{c:"Documents & admin",g:"w0",s:S.TASK,n:"Add the baby to the health insurance policy",p:"Check your policy's window",
+ w:"Most policies allow a newborn to be added within a set number of days. Miss it and you wait until renewal.",a:""},
+{c:"Documents & admin",g:"w0",s:S.TASK,n:"File the discharge summary and vaccination card",p:"",
+ w:"Both go into the baby's folder the day you get home. The vaccination card is the one document you'll be asked for repeatedly.",a:""},
+{c:"Documents & admin",g:"m2",s:S.TASK,n:"Baby's Aadhaar enrolment",p:"After the birth certificate",w:"Needed later for school, passport and insurance claims.",a:""},
+
+/* ===================== HOSPITAL BAG ===================== */
+{c:"Hospital bag",g:"hospital",s:S.BUY,n:"Mum's bag",p:"Packed and by the door by 3 Aug (week 37) — earlier if anything changes",
+ w:"2–3 front-open nursing gowns, 2–3 nursing bras, loose pyjamas, slippers plus bathroom flip-flops, high-waisted underwear, toiletries, hair ties, lip balm, maternity pads, peri bottle, nipple cream, nursing pads, the abdomen pillow.",a:""},
+{c:"Hospital bag",g:"hospital",s:S.BUY,n:"Baby's bag",p:"",
+ w:"3–4 sleepsuits, 4–5 vests, 2 mittens, 2 caps, 3 socks, 2–3 swaddles, 20–30 NB diapers, dry wipes, wet wipes, rash cream, changing mat, burp cloth, hooded towel, muslins.",a:""},
+{c:"Hospital bag",g:"hospital",s:S.BUY,n:"Your bag",p:"Keep it separate from hers",
+ w:"2 t-shirts, track pants, underwear, toiletries, a 2–3 m charging cable, power bank, extension board, snacks, water bottle, light jacket — hospitals run cold — and your own regular medicines.",a:""},
+{c:"Hospital bag",g:"hospital",s:S.BUY,n:"Going-home set, kept at the top",p:"",
+ w:"Comfortable outfit for her; one outfit, swaddle, cap and socks for the baby.",a:""},
+{c:"Hospital bag",g:"hospital",s:S.BOUGHT,n:"Fujifilm Instax Mini film",p:"20 shots · ₹1,399",
+ w:"Not essential and completely worth it. Instant prints for the grandparents on day one, and film that nobody has to remember to back up.",a:""},
+{c:"Hospital bag",g:"hospital",s:S.TASK,n:"Ride plan to the hospital, plus a backup",p:"Two drivers' numbers, route checked",
+ w:"Decide who drives, who stays, and what happens if it's 3 a.m. and the first person doesn't answer.",a:""},
+{c:"Hospital bag",g:"hospital",s:S.TASK,n:"Ask the hospital what they supply",p:"One phone call, saves duplicate packing",
+ w:"Many supply newborn diapers, cotton, a blanket, a cap, sanitary pads, and formula if it's medically needed. Ask for their admission kit list.",a:""},
+
+/* ===================== TRAVEL & GEAR ===================== */
+{c:"Travel & gear",g:"w6",s:S.LATER,n:"Baby carrier",p:"Buy around week 6–8 · budget ₹5,000–8,000",
+ w:"Not needed at birth — the baby is 3 kg and you'll be at home. It earns its place once the baby wants contact naps and you start going out. Buying then means you know the size and the real usage.",
+ a:"Wants: ergonomic seat with knees above hips, adjustable seat width, padded waist belt with lumbar support, breathable fabric, easy to swap between you both. Shortlist: Infantino Flip 4-in-1 (value), Momcozy structured, Soul Slings (India), Ergobaby Omni Breeze only if bought abroad or discounted. Skip single-shoulder slings, hip seats before 6 months, generic 6-in-1s."},
+{c:"Travel & gear",g:"m2",s:S.LATER,n:"Stroller",p:"Buy around month 2–3 · budget up to ~₹20,000",
+ w:"Deferred so you buy against a real routine, and close enough to the first flight for it to matter. Biggest remaining spend.",
+ a:"Wants: cabin-size fold, one-hand fold, near-flat recline for naps, usable basket, spares and service in India. To compare: Babyzen YOYO3, Bugaboo Butterfly, Joolz Aer+, Ergobaby Metro+ Deluxe, R for Rabbit premium."},
+{c:"Travel & gear",g:"w6",s:S.TASK,n:"The 4-hour drive to her mother's place",p:"Plan it before the week it happens",
+ w:"Diapers and wipes within arm's reach, two full changes, muslins, feeding kit, blanket, bin bag, and stops every 1.5–2 hours for a feed, a change and time out of the seat. Work out in advance how the baby travels safely — a rear-facing infant seat, borrowed or hired, is the only real answer. Arms are not a substitute at highway speed.",a:""},
+{c:"Travel & gear",g:"any",s:S.OPTIONAL,n:"Diaper bag",p:"Check whether a backpack you own already works",
+ w:"Most dedicated diaper bags are a normal backpack with a mat and a markup.",a:""},
+{c:"Travel & gear",g:"any",s:S.SKIP,n:"Car seat for daily use",p:"Revisit if you buy a car",
+ w:"Skipped on cost against use — but see the road-trip item above, which is a different question.",a:""},
+
+/* ===================== LATER ===================== */
+{c:"Later (3–12 months)",g:"m2",s:S.LATER,n:"Play gym",p:"Around 2–3 months",w:"When the baby starts reaching and batting at things.",a:""},
+{c:"Later (3–12 months)",g:"m2",s:S.LATER,n:"Teethers",p:"Around 3–4 months",w:"",a:""},
+{c:"Later (3–12 months)",g:"m6",s:S.LATER,n:"High chair",p:"Around 5–6 months, before solids",w:"",a:""},
+{c:"Later (3–12 months)",g:"m6",s:S.LATER,n:"Sippy or straw cup",p:"Around 6 months",w:"",a:""},
+{c:"Later (3–12 months)",g:"m6",s:S.LATER,n:"Finger toothbrush",p:"When the first tooth appears",w:"",a:""},
+{c:"Later (3–12 months)",g:"m6",s:S.LATER,n:"Baby-proofing",p:"Around 6–9 months, before crawling",
+ w:"Sockets, corners, stair gate, cupboard latches, anchoring furniture that can tip.",a:""}
+].map((o,i)=>({id:"i"+i,...o}));
+
+const PRINCIPLES=[
+ ["Buy for today, not for six months later","Most baby gear is sold as a system. Buy the minimum, watch what actually gets used, expand only that."],
+ ["Trial before investing","Bottles, teats, diapers, carriers and pacifiers all depend on the individual baby. Buy one or two, then commit."],
+ ["Spend where it's touched all day","Diapers, feeding, sleep surface, carrier. Appliances and one-season items are where to save."],
+ ["Deferred isn't undecided","The steriliser, pump, carrier, stroller and car seat are all deliberate waits with a trigger date, not loose ends."]
+];
+
+let state=JSON.parse(Store.get("bh_state")||"{}");
+const DEFAULT_DUE="2026-08-24";
+state.edit=state.edit||{};       // per-item field overrides {n,p,c,price}
+state.status=state.status||{};
+state.stage=state.stage||{};
+state.custom=state.custom||[];
+state.due=state.due||DEFAULT_DUE;
+let save;   // assigned just below
+
+/* ---------- live sync layer (no-op unless SYNC_ON) ---------- */
+let sb=null, pushT=null, applying=false;
+const SYNC_KEYS=["edit","status","stage","notes","done","custom","due"];
+function localSave(){ Store.set("bh_state",JSON.stringify(state)); }
+save=function(){ localSave(); if(SYNC_ON) schedulePush(); };
+function schedulePush(){ clearTimeout(pushT); pushT=setTimeout(pushNow,600); }
+async function pushNow(){
+  if(!sb||applying) return;
+  const payload={}; SYNC_KEYS.forEach(k=>payload[k]=state[k]);
+  try{ await sb.from("handbook").upsert({id:"shared", data:payload, updated_at:new Date().toISOString()}); }
+  catch(e){ /* stay quiet; local copy is safe */ }
+}
+function mergeRemote(data){
+  if(!data) return;
+  applying=true;
+  SYNC_KEYS.forEach(k=>{ if(data[k]!=null) state[k]=data[k]; });
+  ["edit","status","stage","notes","done"].forEach(k=>state[k]=state[k]||{});
+  state.custom=state.custom||[]; state.due=state.due||DEFAULT_DUE;
+  localSave(); applying=false;
+  if(window.__rendered){ due.value=state.due; render(); }
+}
+async function initSync(){
+  if(!SYNC_ON) return;
+  try{
+    sb=window.supabase.createClient(SB_URL,SB_KEY);
+    const {data}=await sb.from("handbook").select("data").eq("id","shared").maybeSingle();
+    if(data&&data.data) mergeRemote(data.data); else pushNow();  // seed row first time
+    sb.channel("handbook-shared")
+      .on("postgres_changes",{event:"*",schema:"public",table:"handbook",filter:"id=eq.shared"},
+          p=>{ if(p.new&&p.new.data) mergeRemote(p.new.data); })
+      .subscribe();
+    document.getElementById("syncDot").classList.add("on");
+    document.getElementById("syncDot").title="Live sync on";
+  }catch(e){ /* offline-only, fine */ }
+}
+
+const ALL=()=>ITEMS.concat(state.custom);
+const ov=(it,f)=>{const e=state.edit[it.id]; return (e&&e[f]!=null)?e[f]:it[f];};
+const nameOf=it=>ov(it,"n"), pickOf=it=>ov(it,"p"), catOf=it=>ov(it,"c");
+const statusOf=it=>state.status[it.id]||it.s;
+const stageOf=it=>state.stage[it.id]||it.g;
+const priceOf=it=>{const p=(state.edit[it.id]&&state.edit[it.id].price); const v=(p!=null?p:it.price); const n=parseFloat(v); return isNaN(n)?null:n;};
+
+let filter="", query="", cat="", stage="";
+const $=s=>document.querySelector(s);
+const el=(t,c,txt)=>{const e=document.createElement(t); if(c)e.className=c; if(txt!=null)e.textContent=txt; return e;};
+const rup=n=>"\u20B9"+Math.round(n).toLocaleString("en-IN");
+
+function visible(it){
+  const st=statusOf(it);
+  if(stage && stageOf(it)!==stage) return false;
+  if(cat && catOf(it)!==cat) return false;
+  if(filter==="open" && SETTLED.includes(st)) return false;
+  if(["buy","task","bought","optional","later","skip"].includes(filter) && st!==filter) return false;
+  if(query){ const hay=(nameOf(it)+" "+pickOf(it)+" "+(it.w||"")+" "+(it.a||"")+" "+catOf(it)).toLowerCase(); if(!hay.includes(query)) return false; }
+  return true;
+}
+const openOf=arr=>arr.filter(i=>!SETTLED.includes(statusOf(i))).length;
+
+function currentStage(){
+  if(!state.due) return "before";
+  const d=new Date(state.due+"T00:00:00"); if(isNaN(d)) return "before";
+  const days=Math.floor((Date.now()-d.getTime())/864e5);
+  if(days<-28) return "before"; if(days<0) return "hospital"; if(days<14) return "w0";
+  if(days<56) return "w6"; if(days<140) return "m2"; return "m6";
+}
+
+function renderRail(){
+  const rail=$("#rail"); rail.innerHTML=""; const cur=currentStage();
+  const all=el("button","stage"); all.setAttribute("aria-pressed",stage==="");
+  all.innerHTML='<span class="lbl">Everything</span><span class="cnt">'+openOf(ALL())+' open</span>';
+  all.onclick=()=>{stage="";render()}; rail.appendChild(all);
+  STAGES.forEach(sg=>{
+    const inStage=ALL().filter(i=>stageOf(i)===sg.id); const op=openOf(inStage);
+    const b=el("button","stage"+(sg.id===cur?" now":"")); b.setAttribute("aria-pressed",stage===sg.id);
+    b.innerHTML='<span class="lbl">'+sg.label+'</span><span class="cnt">'+(op?op+" open":"clear")+'</span>';
+    b.onclick=()=>{stage=(stage===sg.id?"":sg.id);render()}; rail.appendChild(b);
+  });
+}
+
+function renderNext(){
+  const cur=currentStage(); const sd=STAGES.find(s=>s.id===cur);
+  const buys=ALL().filter(i=>statusOf(i)===S.BUY).length;
+  const tasks=ALL().filter(i=>statusOf(i)===S.TASK && !SETTLED.includes(statusOf(i))).length;
+  let title;
+  if(buys||tasks){ title=[buys?buys+" to buy":"",tasks?tasks+" to do":""].filter(Boolean).join("  \u00B7  "); }
+  else title="Nothing open right now";
+  $("#nextTitle").textContent=title;
+  const openHere=openOf(ALL().filter(i=>stageOf(i)===cur));
+  $("#nextDesc").textContent=openHere?openHere+" open in "+sd.label.toLowerCase()+".":"You're clear for "+sd.label.toLowerCase()+".";
+  let cd="";
+  const d=new Date(state.due+"T00:00:00");
+  if(!isNaN(d)){ const days=Math.round((d.getTime()-Date.now())/864e5);
+    if(days>0) cd=days+" day"+(days>1?"s":"")+" to go, roughly week "+Math.floor(40-days/7)+".";
+    else if(days===0) cd="That's today."; else cd="Day "+(-days)+"."; }
+  $("#dueNote").textContent=" "+cd+" You're in: "+sd.label+". "+sd.note;
+}
+
+function renderMoney(){
+  let spent=0,left=0,opt=0,all=0;
+  ALL().forEach(i=>{const p=priceOf(i); if(p==null) return; const st=statusOf(i);
+    if(!PRICED.includes(st)) return; all+=p;
+    if(st===S.BOUGHT)spent+=p; else if(st===S.BUY)left+=p; else if(st===S.OPTIONAL)opt+=p; });
+  $("#spSpent").textContent=rup(spent); $("#spLeft").textContent=rup(left);
+  $("#spOpt").textContent=rup(opt); $("#spAll").textContent=rup(all);
+}
+
+function taskDone(it){ return !!(state.done && state.done[it.id]); }
+function renderProgress(){
+  const scope=ALL().filter(i=>["before","hospital"].includes(stageOf(i)) && statusOf(i)!==S.SKIP);
+  const total=Math.max(scope.length,1);
+  const bought=scope.filter(i=>statusOf(i)===S.BOUGHT).length;
+  const tdone=scope.filter(i=>statusOf(i)===S.TASK && taskDone(i)).length;
+  const pct=Math.round((bought+tdone)/total*100);
+  $("#pbBought").style.width=(bought/total*100)+"%";
+  $("#pbTask").style.width=(tdone/total*100)+"%";
+  const boughtAll=ALL().filter(i=>statusOf(i)===S.BOUGHT).length;
+  $("#progLabel").textContent="Before + hospital \u2014 "+(bought+tdone)+" of "+total+" ready  \u00B7  "+boughtAll+" bought overall";
+  $("#progPct").textContent=pct+"%";
+}
+
+function renderList(){
+  const list=$("#list"); list.innerHTML="";
+  const shown=ALL().filter(visible);
+  if(!shown.length){ list.appendChild(el("p","empty","Nothing matches. Clear the filters or search for something else.")); renderMoney(); return; }
+  const cats=[...new Set(shown.map(catOf))];
+  cats.forEach(c=>{
+    const g=el("div","group"); const h=el("div","ghead"); h.appendChild(el("h2",null,c));
+    const items=shown.filter(i=>catOf(i)===c);
+    const op=openOf(items);
+    let sum=0,any=false; items.forEach(i=>{const p=priceOf(i); if(p!=null&&PRICED.includes(statusOf(i))){sum+=p;any=true;}});
+    h.appendChild(el("span","gc",(op?op+" open / "+items.length:items.length+" done")+(any?"  \u00B7  "+rup(sum):"")));
+    g.appendChild(h);
+    const ul=el("ul","items"); items.forEach(it=>ul.appendChild(renderItem(it))); g.appendChild(ul); list.appendChild(g);
+  });
+  if(!filter&&!query&&!cat){
+    const g=el("div","group"); const h=el("div","ghead"); h.appendChild(el("h2",null,"How we decided")); g.appendChild(h);
+    const ul=el("ul","items");
+    PRINCIPLES.forEach(([t,d])=>{const li=el("li","item");
+      li.innerHTML='<div class="row"><div class="main"><div class="namebtn" style="cursor:default"><span class="n">'+t+'</span></div><div class="detail" style="margin-left:0">'+d+'</div></div></div>';
+      ul.appendChild(li);});
+    g.appendChild(ul); list.appendChild(g);
+  }
+  renderMoney();
+}
+
+function renderItem(it){
+  const st=statusOf(it); const isTask=(st===S.TASK); const isCustom=it.id.charAt(0)==="c";
+  const doneFlag=!!(state.done&&state.done[it.id]);
+  const li=el("li","item"+(st===S.BOUGHT?" done":"")+(st===S.SKIP?" skipped":""));
+  const row=el("div","row");
+
+  const tick=el("input","tick"+(isTask?" taskdone":"")); tick.type="checkbox";
+  tick.checked=(st===S.BOUGHT)||(isTask&&doneFlag);
+  tick.setAttribute("aria-label",(isTask?"Mark done: ":"Mark bought: ")+nameOf(it));
+  tick.onchange=()=>{
+    if(isTask){ state.done=state.done||{}; if(tick.checked)state.done[it.id]=1; else delete state.done[it.id]; }
+    else { state.status[it.id]= tick.checked?S.BOUGHT:(it.s===S.BOUGHT?S.BUY:it.s); }
+    save(); render();
+  };
+  row.appendChild(tick);
+
+  const main=el("div","main");
+  const nb=el("button","namebtn"); nb.setAttribute("aria-expanded","false");
+  const price=priceOf(it);
+  nb.innerHTML='<span class="n">'+esc(nameOf(it))+(price!=null?'<span class="prc">'+rup(price)+'</span>':"")+'</span>'+(pickOf(it)?'<span class="pick">'+esc(pickOf(it))+(isTask&&doneFlag?' \u2014 done':"")+'</span>':(isTask&&doneFlag?'<span class="pick">done</span>':""));
+  main.appendChild(nb);
+
+  const meta=el("div","meta");
+  const sb=el("select","st "+st); sb.title="Change status";
+  ORDER.forEach(v=>{const o=el("option",null,SLABEL[v]);o.value=v;if(v===st)o.selected=true;sb.appendChild(o);});
+  sb.setAttribute("aria-label","Status for "+nameOf(it));
+  sb.onchange=()=>{ state.status[it.id]=sb.value; if(sb.value!==S.TASK&&state.done)delete state.done[it.id]; save(); render(); };
+  meta.appendChild(sb);
+  meta.appendChild(el("span","tag",(STAGES.find(s=>s.id===stageOf(it))||{}).label||stageOf(it)));
+  if(state.notes&&state.notes[it.id]) meta.appendChild(el("span","tag","note"));
+  const eb=el("button","editbtn","edit"); meta.appendChild(eb);
+  main.appendChild(meta); row.appendChild(main); li.appendChild(row);
+
+  const det=el("div","detail"); det.hidden=true;
+  if(it.w){const p=el("p");p.innerHTML='<span class="lab">Why</span>'+esc(it.w);det.appendChild(p);}
+  if(it.a){const p=el("p");p.innerHTML='<span class="lab">Options and rejects</span>'+esc(it.a);det.appendChild(p);}
+
+  // editable fields
+  const mk=(lab,val,ph,cb,narrow,num)=>{
+    const wrap=el("div",narrow?"narrow":null); wrap.appendChild(el("span","lab",lab));
+    const inp=el("input","f"); inp.value=val||""; inp.placeholder=ph||""; if(num){inp.type="number";inp.inputMode="numeric";}
+    inp.oninput=()=>cb(inp.value); wrap.appendChild(inp); return wrap;
+  };
+  const fr=el("div","frow");
+  fr.appendChild(mk("Name",nameOf(it),"",v=>{setEdit(it,"n",v);softName(nb,it);}));
+  fr.appendChild(mk("Price \u20B9",price!=null?price:"","e.g. 949",v=>{setEdit(it,"price",v===""?null:v);renderMoney();softName(nb,it);},true,true));
+  det.appendChild(fr);
+  const fr2=el("div","frow");
+  fr2.appendChild(mk("Detail",pickOf(it),"brand, size",v=>{setEdit(it,"p",v);softName(nb,it);}));
+  const cwrap=el("div"); cwrap.appendChild(el("span","lab","Category"));
+  const cin=el("input","f"); cin.value=catOf(it); cin.setAttribute("list","catList");
+  cin.oninput=()=>setEdit(it,"c",cin.value); cin.onchange=()=>render(); cwrap.appendChild(cin); fr2.appendChild(cwrap);
+  det.appendChild(fr2);
+
+  det.appendChild(el("span","lab","When it's needed"));
+  const stg=el("select","f"); STAGES.forEach(x=>{const o=el("option",null,x.label);o.value=x.id;if(x.id===stageOf(it))o.selected=true;stg.appendChild(o);});
+  stg.onchange=()=>{state.stage[it.id]=stg.value;save();render();}; det.appendChild(stg);
+
+  det.appendChild(el("span","lab","Your note"));
+  const ta=el("textarea"); state.notes=state.notes||{}; ta.value=state.notes[it.id]||""; ta.placeholder="where you bought it, what to check\u2026";
+  ta.oninput=()=>{state.notes[it.id]=ta.value;save();}; det.appendChild(ta);
+
+  if(isCustom){const rm=el("button","rmbtn","Remove this item");
+    rm.onclick=()=>{state.custom=state.custom.filter(x=>x.id!==it.id);["edit","status","stage","notes","done"].forEach(k=>{if(state[k])delete state[k][it.id]});save();render();toast("Removed");};
+    det.appendChild(rm);}
+  li.appendChild(det);
+
+  const toggle=()=>{const o=det.hidden;det.hidden=!o;nb.setAttribute("aria-expanded",String(o));};
+  nb.onclick=toggle; eb.onclick=e=>{e.stopPropagation();toggle();};
+  return li;
+}
+function softName(nb,it){ // update the name line live without full rerender
+  const price=priceOf(it);
+  nb.querySelector(".n").innerHTML=esc(nameOf(it))+(price!=null?'<span class="prc">'+rup(price)+'</span>':"");
+  const pk=nb.querySelector(".pick"); if(pk) pk.textContent=pickOf(it);
+}
+function setEdit(it,f,v){ state.edit[it.id]=state.edit[it.id]||{}; if(v===null)delete state.edit[it.id][f]; else state.edit[it.id][f]=v; save(); }
+function esc(s){const d=document.createElement("div");d.textContent=s==null?"":s;return d.innerHTML;}
+
+function render(){ renderRail(); renderNext(); renderProgress(); renderList(); refreshCats(); }
+
+function refreshCats(){
+  const cur=catSel.value;
+  catSel.innerHTML='<option value="">All categories</option>';
+  [...new Set(ALL().map(catOf))].forEach(c=>{const o=el("option",null,c);o.value=c;if(c===cur)o.selected=true;catSel.appendChild(o)});
+  const dl=$("#catList"); dl.innerHTML=""; [...new Set(ALL().map(catOf))].forEach(c=>{const o=el("option");o.value=c;dl.appendChild(o)});
+}
+
+const catSel=$("#catSel");
+catSel.onchange=()=>{cat=catSel.value;render()};
+document.querySelectorAll(".chipbtn[data-f]").forEach(b=>{b.onclick=()=>{const f=b.dataset.f;filter=(filter===f?"":f);
+  document.querySelectorAll(".chipbtn[data-f]").forEach(x=>x.setAttribute("aria-pressed",String(x.dataset.f===filter)));render();};});
+$("#q").oninput=e=>{query=e.target.value.trim().toLowerCase();render()};
+
+const due=$("#dueDate"); due.value=state.due; due.onchange=()=>{state.due=due.value;save();render()};
+
+const aStage=$("#aStage"),aStatus=$("#aStatus");
+STAGES.forEach(x=>{const o=el("option",null,x.label);o.value=x.id;aStage.appendChild(o)});
+ORDER.forEach(v=>{const o=el("option",null,SLABEL[v]);o.value=v;aStatus.appendChild(o)});
+$("#addToggle").onclick=()=>{$("#addBox").classList.toggle("on");$("#aName").focus();};
+$("#aAdd").onclick=()=>{const n=$("#aName").value.trim(); if(!n){toast("Give it a name first");return;}
+  state.custom.push({id:"c"+Date.now(),n,p:$("#aPick").value.trim(),c:$("#aCat").value.trim()||"My additions",
+    g:aStage.value||"before",s:aStatus.value||S.BUY,price:$("#aPrice").value.trim()||null,w:"",a:""});
+  save();["aName","aPick","aPrice"].forEach(id=>$("#"+id).value="");render();toast("Added");};
+
+const themeBtn=$("#themeBtn");
+const applyTheme=t=>{document.documentElement.dataset.theme=t;Store.set("bh_theme",t)};
+applyTheme(Store.get("bh_theme")||(matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light"));
+themeBtn.onclick=()=>applyTheme(document.documentElement.dataset.theme==="dark"?"light":"dark");
+
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("on");setTimeout(()=>t.classList.remove("on"),1700)}
+$("#exportBtn").onclick=()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="baby-handbook-backup.json";a.click();URL.revokeObjectURL(a.href);toast("Backup saved");};
+$("#importBtn").onclick=()=>$("#importFile").click();
+$("#importFile").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{try{const d=JSON.parse(r.result);Object.assign(state,d);["edit","status","stage","notes","done"].forEach(k=>state[k]=state[k]||{});state.custom=state.custom||[];state.due=state.due||DEFAULT_DUE;save();due.value=state.due;render();toast("Backup restored");}catch(err){toast("That file couldn't be read");}};
+  r.readAsText(f);e.target.value="";};
+
+render();
+window.__rendered=true;
+initSync();
+</script>
+</body>
+</html>
