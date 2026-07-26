@@ -139,6 +139,14 @@ footer{padding:20px 16px;color:var(--ink3);font-size:12px;line-height:1.5}
 
 .modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:100}
 .modal.on{display:flex}
+/* role-based UI: hide controls the current role shouldn't have */
+/* sign-out available to all; label set in JS */
+body:not(.role-admin) #priceBtn{display:none}
+body.role-viewer #addToggle,body.role-viewer #newsectToggle,body.role-viewer .addbar{display:none}
+body.role-viewer .tick,body.role-viewer .st,body.role-viewer .expandbtn{pointer-events:none;opacity:.85}
+body.role-viewer .cltick,body.role-viewer .cladd,body.role-viewer .claddbtn,body.role-viewer .cldel,body.role-viewer .delbtn{display:none}
+/* price hiding */
+body.hide-price .prc,body.hide-price .spendrow,body.hide-price .gc{display:none !important}
 /* Hide everything until a valid passcode unlocks the app */
 body.locked .nextcard,body.locked .stagecounts,body.locked .filters,body.locked .addbar,body.locked main,body.locked footer{display:none !important}
 body.locked .tools .iconbtn:not(#themeBtn),body.locked .tools #syncDot{visibility:hidden}
@@ -168,6 +176,7 @@ body.locked .tools .iconbtn:not(#themeBtn),body.locked .tools #syncDot{visibilit
     </div>
     <div class="tools">
       <span id="syncDot" class="syncdot" title="Offline (this device only)"></span>
+      <button class="iconbtn" id="priceBtn" title="Show / hide prices">₹</button>
       <button class="iconbtn" id="lockBtn" title="Change passcode / lock this device">Lock</button>
       <button class="iconbtn" id="themeBtn" title="Light / dark">&#9680;</button>
       <button class="iconbtn" id="exportBtn" title="Backup">Backup</button>
@@ -229,11 +238,12 @@ body.locked .tools .iconbtn:not(#themeBtn),body.locked .tools #syncDot{visibilit
 
 <div class="modal" id="passModal">
   <div class="modalbody">
-    <h3>Enter passcode</h3>
-    <p>Shared passcode for your family list. Only people with it can see or change your items.</p>
-    <input id="passInput" type="password" inputmode="text" autocomplete="off" placeholder="passcode" style="width:100%;background:var(--card);border:1px solid var(--line);border-radius:7px;padding:10px;font-size:15px;color:var(--ink);margin-bottom:12px">
+    <h3>Sign in</h3>
+    <p>Enter your username and password to open the list.</p>
+    <input id="loginUser" type="text" autocapitalize="none" autocorrect="off" autocomplete="username" placeholder="username" style="width:100%;background:var(--card);border:1px solid var(--line);border-radius:7px;padding:10px;font-size:15px;color:var(--ink);margin-bottom:8px">
+    <input id="loginPass" type="password" autocomplete="current-password" placeholder="password" style="width:100%;background:var(--card);border:1px solid var(--line);border-radius:7px;padding:10px;font-size:15px;color:var(--ink);margin-bottom:12px">
     <div class="modalrow">
-      <button class="modalbtn yes" id="passGo" style="background:var(--accent)">Unlock</button>
+      <button class="modalbtn yes" id="passGo" style="background:var(--accent)">Sign in</button>
     </div>
   </div>
 </div>
@@ -258,9 +268,15 @@ body.locked .tools .iconbtn:not(#themeBtn),body.locked .tools #syncDot{visibilit
    PASTE YOUR SUPABASE VALUES HERE
    Leave blank for offline-only mode. Fill in to sync live.
    ============================================================ */
-const SB_URL = "https://wlumpnahptevsacjmxjg.supabase.co";          // e.g. https://abcdxyz.supabase.co
-const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndsdW1wbmFocHRldnNhY2pteGpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ5NzQ2NTksImV4cCI6MjEwMDU1MDY1OX0.T4yPidqQCLU2AfoCGZJQG8PfE1_yun1BsjKiWtHn86c";          // the "anon public" key
+const SB_URL = "https://wlumpnahptevsacjmxjg.supabase.co";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndsdW1wbmFocHRldnNhY2pteGpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ5NzQ2NTksImV4cCI6MjEwMDU1MDY1OX0.T4yPidqQCLU2AfoCGZJQG8PfE1_yun1BsjKiWtHn86c";
 const SYNC_ON = SB_URL && SB_KEY;
+
+/* ---- LOGIN ROLES ----
+   Usernames map to roles. Passwords live ONLY in Supabase Auth,
+   never in this file. Admin manages them in the Supabase dashboard. */
+const ROLE_BY_USER = { admin:"admin", owner:"super", guest:"viewer" };
+const EMAIL_DOMAIN = "baby.local";   // usernames become username@baby.local internally
 /* ============================================================ */
 
 const Store=(()=>{let mem={},ok=true;try{localStorage.setItem("__t","1");localStorage.removeItem("__t")}catch(e){ok=false}
@@ -490,10 +506,10 @@ let save;
 function closeAdd(){["aName","aPick","aPrice","aCat"].forEach(id=>$("#"+id).value="");$("#addBox").classList.remove("on");}
 function closeNewsect(){$("#nsName").value="";$("#newsectBox").classList.remove("on");}
 
-save=function(){ localSave(); if(SYNC_ON && ROOM) schedulePush(); };
+save=function(){ if(ROLE==="viewer"){ return; } localSave(); if(SYNC_ON && ROOM) schedulePush(); };
 function schedulePush(){ clearTimeout(pushT); pushT=setTimeout(pushNow,600); }
 async function pushNow(){
-  if(!sb||applying||!ROOM) return;
+  if(!sb||applying||!ROOM||ROLE==="viewer") return;
   const payload={}; SYNC_KEYS.forEach(k=>payload[k]=state[k]);
   try{ await sb.from("handbook").upsert({id:ROOM, data:payload, updated_at:new Date().toISOString()}); }
   catch(e){ /* offline ok */ }
@@ -516,52 +532,76 @@ function mergeRemote(data){
     }
   }
 }
-let ROOM="";  // the passcode-derived row id; empty until unlocked
+let ROOM="r_babyhandbook_shared";   // fixed shared room; all roles use the same data
+let ROLE="";                         // "admin" | "super" | "viewer"
 async function sha256hex(str){
   const buf=await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
   return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("");
 }
-async function deriveRoom(passcode){
-  // salt keeps the row id from being a bare hash of a common word
-  const h=await sha256hex("baby-handbook::"+passcode.trim().toLowerCase());
-  return "r_"+h.slice(0,32);
+function roleForUser(username){
+  return ROLE_BY_USER[(username||"").trim().toLowerCase()] || "";
+}
+function applyRole(role){
+  ROLE=role;
+  document.body.classList.remove("role-admin","role-super","role-viewer");
+  document.body.classList.add("role-"+role);
+  // price visibility: admin can toggle; super always sees; viewer never sees
+  if(role==="viewer"){ document.body.classList.add("hide-price"); }
+  else if(role==="super"){ document.body.classList.remove("hide-price"); }
+  else { if(Store.get("bh_hideprice")==="1") document.body.classList.add("hide-price"); else document.body.classList.remove("hide-price"); }
 }
 async function initSync(){
-  if(!SYNC_ON){ document.body.classList.remove("locked"); return; }
-  try{ sb=window.supabase.createClient(SB_URL,SB_KEY); }catch(e){ return; }
-  // get passcode: remembered on this device, else ask
-  let pass=Store.get("bh_pass");
-  if(!pass){ pass=await askPasscode(); if(!pass) return; }
-  await unlockWith(pass);
+  if(!SYNC_ON){ document.body.classList.remove("locked"); applyRole("admin"); return; }
+  try{ sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}}); }catch(e){ return; }
+  // If a valid session already exists on this device, use it (stay logged in).
+  let role="";
+  try{
+    const {data:{session}}=await sb.auth.getSession();
+    if(session && session.user){ role=roleForUser(userFromEmail(session.user.email)); }
+  }catch(e){}
+  // Otherwise show the login form until a valid login succeeds.
+  while(!role){
+    const creds=await askLogin(); if(!creds) return;
+    const email=creds.user.trim().toLowerCase()+"@"+EMAIL_DOMAIN;
+    const {data,error}=await sb.auth.signInWithPassword({email,password:creds.pass});
+    if(error || !data.user){ toast("Wrong username or password"); continue; }
+    role=roleForUser(userFromEmail(data.user.email));
+    if(!role){ toast("This account has no access"); await sb.auth.signOut(); }
+  }
+  await unlockWith(role);
 }
-async function unlockWith(pass){
-  ROOM=await deriveRoom(pass);
-  Store.set("bh_pass", pass);          // remember on this device
+function userFromEmail(email){ return (email||"").split("@")[0]; }
+async function unlockWith(role){
+  applyRole(role);
   try{
     const {data}=await sb.from("handbook").select("data").eq("id",ROOM).maybeSingle();
-    if(data&&data.data) mergeRemote(data.data); else pushNow();  // first use of this room seeds it
+    if(data&&data.data) mergeRemote(data.data); else if(role!=="viewer") pushNow();
     if(window.__chan){ try{ sb.removeChannel(window.__chan); }catch(e){} }
     window.__chan=sb.channel("room-"+ROOM)
       .on("postgres_changes",{event:"*",schema:"public",table:"handbook",filter:"id=eq."+ROOM},
           p=>{ if(p.new&&p.new.data) mergeRemote(p.new.data); })
       .subscribe();
     $("#syncDot").classList.add("on");
-    $("#syncDot").title="Live sync on";
+    $("#syncDot").title="Live sync on ("+role+")";
     document.body.classList.remove("locked");
+    if(window.__rendered) render();
   }catch(e){ /* offline */ }
 }
-function askPasscode(){
+function askLogin(){
   return new Promise(resolve=>{
     const m=$("#passModal"); m.classList.add("on");
-    const inp=$("#passInput"); inp.value=""; setTimeout(()=>inp.focus(),100);
-    const go=async()=>{
-      const v=inp.value.trim(); if(!v){ inp.focus(); return; }
+    const u=$("#loginUser"), p=$("#loginPass");
+    u.value=""; p.value=""; setTimeout(()=>u.focus(),100);
+    const go=()=>{
+      const uu=u.value.trim(), pp=p.value;
+      if(!uu||!pp){ (uu?p:u).focus(); return; }
       m.classList.remove("on");
-      $("#passGo").onclick=null; inp.onkeydown=null;
-      resolve(v);
+      $("#passGo").onclick=null; u.onkeydown=null; p.onkeydown=null;
+      resolve({user:uu, pass:pp});
     };
     $("#passGo").onclick=go;
-    inp.onkeydown=e=>{ if(e.key==="Enter"){ e.preventDefault(); go(); } };
+    const key=e=>{ if(e.key==="Enter"){ e.preventDefault(); go(); } };
+    u.onkeydown=key; p.onkeydown=key;
   });
 }
 
@@ -838,15 +878,29 @@ const applyTheme=t=>{document.documentElement.dataset.theme=t;Store.set("bh_them
 applyTheme(Store.get("bh_theme")||(matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light"));
 themeBtn.onclick=()=>applyTheme(document.documentElement.dataset.theme==="dark"?"light":"dark");
 
-const lockBtn=$("#lockBtn");
-if(lockBtn){ lockBtn.onclick=async()=>{
-  // Re-lock: forget passcode on this device and ask again (lets you switch/change it)
-  Store.set("bh_pass","");
-  if(window.__chan){ try{ sb.removeChannel(window.__chan); }catch(e){} window.__chan=null; }
-  ROOM=""; $("#syncDot").classList.remove("on");
-  document.body.classList.add("locked");
-  const p=await askPasscode(); if(p) await unlockWith(p);
+const priceBtn=$("#priceBtn");
+if(priceBtn){ priceBtn.onclick=()=>{
+  const hidden=document.body.classList.toggle("hide-price");
+  Store.set("bh_hideprice", hidden?"1":"0");
 }; }
+
+const lockBtn=$("#lockBtn");
+if(lockBtn){
+  lockBtn.textContent="Sign out";
+  lockBtn.onclick=async()=>{
+    try{ await sb.auth.signOut(); }catch(e){}
+    if(window.__chan){ try{ sb.removeChannel(window.__chan); }catch(e){} window.__chan=null; }
+    ROLE=""; $("#syncDot").classList.remove("on");
+    document.body.classList.add("locked");
+    const creds=await askLogin();
+    if(creds){
+      const email=creds.user.trim().toLowerCase()+"@"+EMAIL_DOMAIN;
+      const {data,error}=await sb.auth.signInWithPassword({email,password:creds.pass});
+      if(!error && data.user){ const r=roleForUser(userFromEmail(data.user.email)); if(r){ await unlockWith(r); return; } }
+      toast("Wrong username or password");
+    }
+  };
+}
 
 function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("on");setTimeout(()=>t.classList.remove("on"),1700)}
 $("#exportBtn").onclick=()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
