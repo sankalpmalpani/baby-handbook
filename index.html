@@ -107,6 +107,17 @@ ul.items{list-style:none;margin:0;padding:0}
 .detrow > div{flex:1 1 140px}
 .detrow .lab{margin-top:12px}
 .detrow .narrow{flex:0 0 100px}
+.checklist{margin-top:6px}
+.clrow{display:flex;align-items:center;gap:8px;padding:5px 0}
+.cltick{flex:0 0 auto;appearance:none;-webkit-appearance:none;width:16px;height:16px;border:1.5px solid var(--ink3);border-radius:4px;background:var(--card);cursor:pointer;position:relative;touch-action:manipulation}
+.cltick:checked{background:var(--s-task);border-color:var(--s-task)}
+.cltick:checked::after{content:"";position:absolute;left:5px;top:1.5px;width:3px;height:8px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(42deg)}
+.cltext{flex:1 1 auto;font-size:13px;color:var(--ink)}
+.clrow.cldone .cltext{color:var(--ink3);text-decoration:line-through}
+.cldel{flex:0 0 auto;background:none;border:0;color:var(--ink3);cursor:pointer;font-size:18px;line-height:1;padding:0 4px;touch-action:manipulation}
+.claddrow{margin-top:2px}
+.cladd{flex:1 1 auto;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:6px 8px;font-size:13px;color:var(--ink)}
+.claddbtn{flex:0 0 auto;background:var(--ink);color:var(--paper);border:0;border-radius:6px;padding:6px 12px;cursor:pointer;font-family:var(--mono);font-size:11px;touch-action:manipulation}
 .delbtn{background:none;border:1px solid var(--danger);color:var(--danger);border-radius:6px;padding:8px 14px;cursor:pointer;font-family:var(--mono);font-size:11px;margin-top:16px;touch-action:manipulation}
 .expandbtn{background:none;border:1px solid var(--line);color:var(--accent);cursor:pointer;font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:3px 10px;border-radius:5px;touch-action:manipulation}
 
@@ -484,10 +495,11 @@ state.custom=state.custom||[];
 state.sections=state.sections||[];
 state.done=state.done||{};
 state.removed=state.removed||{};
+state.checklist=state.checklist||{};
 state.due=state.due||DEFAULT_DUE;
 
 let sb=null, pushT=null, applying=false;
-const SYNC_KEYS=["edit","status","stage","notes","done","removed","custom","sections","due"];
+const SYNC_KEYS=["edit","status","stage","notes","done","removed","checklist","custom","sections","due"];
 function localSave(){ Store.set("bh_state",JSON.stringify(state)); }
 let save;
 function closeAdd(){["aName","aPick","aPrice","aCat"].forEach(id=>$("#"+id).value="");$("#addBox").classList.remove("on");}
@@ -657,8 +669,6 @@ function renderItem(it){
   main.appendChild(meta); row.appendChild(main); li.appendChild(row);
 
   const det=el("div","detail"); det.id="d"+it.id;
-  if(it.w){const p=el("p");p.innerHTML='<span class="lab">Why</span>'+esc(it.w);det.appendChild(p);}
-  if(it.a){const p=el("p");p.innerHTML='<span class="lab">Options & rejects</span>'+esc(it.a);det.appendChild(p);}
 
   const mk=(lab,val,ph,cb,narrow,num)=>{
     const wrap=el("div",narrow?"narrow":null); wrap.appendChild(el("span","lab",lab));
@@ -681,9 +691,39 @@ function renderItem(it){
   const stg=el("select","f"); STAGES.forEach(x=>{const o=el("option",null,x.label);o.value=x.id;if(x.id===stageOf(it))o.selected=true;stg.appendChild(o);});
   stg.onchange=()=>{state.stage[it.id]=stg.value;save();render();}; det.appendChild(stg);
 
-  det.appendChild(el("span","lab","Your note"));
-  const ta=el("textarea"); state.notes=state.notes||{}; ta.value=state.notes[it.id]||""; ta.placeholder="where you bought it, what to check...";
-  ta.oninput=()=>{state.notes[it.id]=ta.value;save();}; det.appendChild(ta);
+  // Comments: editable, merges the original Why + Options text as the starting value
+  det.appendChild(el("span","lab","Comments"));
+  const cta=el("textarea");
+  const baseComment=[it.w,it.a].filter(Boolean).join("\n\n");
+  const cv=(state.edit[it.id]&&state.edit[it.id].comment!=null)?state.edit[it.id].comment:baseComment;
+  cta.value=cv; cta.placeholder="notes on why, options considered...";
+  cta.oninput=()=>{setEdit(it,"comment",cta.value);}; det.appendChild(cta);
+
+  // Notes: a tick-list of sub to-dos (text + checkbox, no reorder)
+  det.appendChild(el("span","lab","Notes / checklist"));
+  state.checklist=state.checklist||{};
+  const cl=el("div","checklist");
+  const drawList=()=>{
+    cl.innerHTML="";
+    const arr=(state.checklist[it.id]||[]);
+    arr.forEach((row,idx)=>{
+      const line=el("div","clrow");
+      const cb=el("input","cltick"); cb.type="checkbox"; cb.checked=!!row.done;
+      cb.onchange=()=>{ row.done=cb.checked; save(); line.classList.toggle("cldone",cb.checked); };
+      const tx=el("span","cltext",row.t); if(row.done)line.classList.add("cldone");
+      const del=el("button","cldel","\u00D7");
+      del.onclick=()=>{ arr.splice(idx,1); save(); drawList(); };
+      line.appendChild(cb); line.appendChild(tx); line.appendChild(del); cl.appendChild(line);
+    });
+    const addrow=el("div","clrow claddrow");
+    const ai=el("input","cladd"); ai.placeholder="add a note / to-do...";
+    const commit=()=>{ const v=ai.value.trim(); if(!v)return; state.checklist[it.id]=state.checklist[it.id]||[]; state.checklist[it.id].push({t:v,done:false}); save(); drawList();
+      const ni=cl.querySelector(".cladd"); if(ni)ni.focus(); };
+    ai.onkeydown=e=>{ if(e.key==="Enter"){e.preventDefault();commit();} };
+    const ab=el("button","claddbtn","Add"); ab.onclick=commit;
+    addrow.appendChild(ai); addrow.appendChild(ab); cl.appendChild(addrow);
+  };
+  drawList(); det.appendChild(cl);
 
   {
     const rm=el("button","delbtn","Delete");
@@ -692,7 +732,7 @@ function renderItem(it){
       $("#delYes").onclick=()=>{
         if(isCustom) state.custom=state.custom.filter(x=>x.id!==it.id);
         else { state.removed=state.removed||{}; state.removed[it.id]=1; }
-        ["edit","status","stage","notes","done"].forEach(k=>{if(state[k])delete state[k][it.id]});
+        ["edit","status","stage","notes","done","checklist"].forEach(k=>{if(state[k])delete state[k][it.id]});
         save(); render(); $("#delModal").classList.remove("on"); toast("Deleted");
       };
       $("#delNo").onclick=()=>{ $("#delModal").classList.remove("on"); };
