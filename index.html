@@ -75,7 +75,7 @@ main{padding:12px 16px 100px}
 
 ul.items{list-style:none;margin:0;padding:0}
 .item{border-bottom:1px solid var(--line);padding:12px 0;display:flex;gap:10px;align-items:flex-start}
-.tick{flex:0 0 auto;appearance:none;-webkit-appearance:none;margin:4px 0 0;width:20px;height:20px;border:1.5px solid var(--ink3);border-radius:5px;background:var(--card);cursor:pointer;touch-action:manipulation;position:relative}
+.tick{flex:0 0 20px;appearance:none;-webkit-appearance:none;margin:4px 0 0;width:20px;height:20px;min-width:20px;max-width:20px;min-height:20px;max-height:20px;border:1.5px solid var(--ink3);border-radius:5px;background:var(--card);cursor:pointer;touch-action:manipulation;position:relative;box-sizing:border-box;padding:0}
 .tick:checked{background:var(--s-bought);border-color:var(--s-bought)}
 .tick.taskdone:checked{background:var(--s-task);border-color:var(--s-task)}
 .tick:checked::after{content:"";position:absolute;left:7px;top:3px;width:4px;height:9px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(42deg)}
@@ -109,7 +109,7 @@ ul.items{list-style:none;margin:0;padding:0}
 .detrow .narrow{flex:0 0 100px}
 .checklist{margin-top:6px}
 .clrow{display:flex;align-items:center;gap:8px;padding:5px 0}
-.cltick{flex:0 0 auto;appearance:none;-webkit-appearance:none;width:16px;height:16px;border:1.5px solid var(--ink3);border-radius:4px;background:var(--card);cursor:pointer;position:relative;touch-action:manipulation}
+.cltick{flex:0 0 18px;appearance:none;-webkit-appearance:none;width:18px;height:18px;min-width:18px;max-width:18px;min-height:18px;max-height:18px;border:1.5px solid var(--ink3);border-radius:4px;background:var(--card);cursor:pointer;position:relative;touch-action:manipulation;margin:0;padding:0;box-sizing:border-box}
 .cltick:checked{background:var(--s-task);border-color:var(--s-task)}
 .cltick:checked::after{content:"";position:absolute;left:5px;top:1.5px;width:3px;height:8px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(42deg)}
 .cltext{flex:1 1 auto;font-size:13px;color:var(--ink)}
@@ -569,12 +569,26 @@ function currentStage(){
 }
 
 function renderNext(){
-  const cur=currentStage(); const sd=STAGES.find(s=>s.id===cur);
-  let cd="";
   const d=new Date(state.due+"T00:00:00");
-  if(!isNaN(d)){ const days=Math.round((d.getTime()-Date.now())/864e5);
-    if(days>0) cd=days+" day"+(days>1?"s":"")+" to go \u00B7 week "+Math.floor(40-days/7);
-    else if(days===0) cd="today"; else cd="day "+(-days); }
+  let cd="";
+  if(!isNaN(d)){
+    // EDD = 40 weeks 0 days. Gestational age = 280 days minus days remaining to EDD.
+    const msDay=864e5;
+    const daysToEDD=Math.round((d.getTime()-Date.now())/msDay);
+    const gaDays=280-daysToEDD;                 // days pregnant today
+    const w=Math.floor(gaDays/7), dd=gaDays%7;
+    let ga="";
+    if(gaDays>=0 && gaDays<=310){                // show while it makes sense
+      ga=w+"w "+dd+"d";
+    }
+    if(daysToEDD>0){
+      cd=ga+" \u00B7 "+daysToEDD+" day"+(daysToEDD>1?"s":"")+" to EDD";
+    } else if(daysToEDD===0){
+      cd=ga+" \u00B7 due today";
+    } else {
+      cd=ga+" \u00B7 "+(-daysToEDD)+" day"+(-daysToEDD>1?"s":"")+" past EDD";
+    }
+  }
   $("#dueNote").textContent=cd?"\u00B7 "+cd:"";
   renderStageCounts();
 }
