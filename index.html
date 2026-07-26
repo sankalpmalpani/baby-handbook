@@ -572,9 +572,11 @@ function renderNext(){
   const d=new Date(state.due+"T00:00:00");
   let cd="";
   if(!isNaN(d)){
-    // EDD = 40 weeks 0 days. Gestational age = 280 days minus days remaining to EDD.
+    // EDD = 40 weeks 0 days. Count from calendar midnight so time-of-day can't shift the day count.
     const msDay=864e5;
-    const daysToEDD=Math.round((d.getTime()-Date.now())/msDay);
+    const now=new Date(); const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+    const edd=new Date(d.getFullYear(),d.getMonth(),d.getDate());
+    const daysToEDD=Math.round((edd.getTime()-today.getTime())/msDay);
     const gaDays=280-daysToEDD;                 // days pregnant today
     const w=Math.floor(gaDays/7), dd=gaDays%7;
     let ga="";
